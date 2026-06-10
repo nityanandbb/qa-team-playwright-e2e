@@ -33,7 +33,7 @@ git checkout -b Ambuj-LoginTest
 
 ### User Folder Creation
 
-Create your own folder inside the `Users/` directory.
+Create your own folder if not available inside the `Users/` directory.
 
 Example:
 
