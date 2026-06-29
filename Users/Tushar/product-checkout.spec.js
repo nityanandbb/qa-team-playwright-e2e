@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Register Login Cart Checkout Flow', async ({ page }) => {
 
-  const email = `tushar8mali@gmail.com`;
+  const email = `tushar11mali@gmail.com`;
   const password = 'Test@123';
 
   // Registration
@@ -17,21 +17,24 @@ test('Register Login Cart Checkout Flow', async ({ page }) => {
 
   await page.getByPlaceholder('enter your number').fill('9876543210');
 
-  await page.locator('select').selectOption({ label: 'Engineer' });
+  await page.getByRole('combobox').selectOption({ label: 'Engineer' });
 
   await page.locator('input[value="Male"]').check();
 
   await page.locator('#userPassword').fill(password);
 
-  await page.locator('#confirmPassword').fill(password);
+  await page.getByPlaceholder('Confirm Passsword').fill(password);
 
-  await page.locator('input[type="checkbox"]').check();
+  await page.getByRole('checkbox').check();
+  
+  await expect(page.getByRole('button', { name: 'Register' })).toBeVisible();
 
   await page.getByRole('button', {name: 'Register'}).click();
 
   await expect(page.getByText('Account Created Successfully')).toBeVisible();
 
   // Login
+  await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
 
   await page.getByRole('button', {name: 'Login'}).click();
 
@@ -52,6 +55,7 @@ test('Register Login Cart Checkout Flow', async ({ page }) => {
   await page.locator('.card-body').first().getByRole('button', { name: 'Add To Cart' }).click();
 
   // Cart Validation
+  await expect(page.locator('[routerlink="/dashboard/cart"]')).toBeVisible();
 
   await page.locator('[routerlink="/dashboard/cart"]').click();
 
@@ -60,6 +64,7 @@ test('Register Login Cart Checkout Flow', async ({ page }) => {
   await expect( page.locator('h3').first()).toBeVisible();
 
   // Checkout
+  await expect(page.getByRole('button', { name: 'Checkout' })).toBeVisible();
 
   await page.getByRole('button', {name: 'Checkout'}).click();
 
