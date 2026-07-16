@@ -1,10 +1,8 @@
 import { expect } from '@playwright/test';
 
-const BASE_URL = 'https://eventhub.rahulshettyacademy.com';
-
 export async function loginAs(page, email, password) {
 
-  await page.goto(`${BASE_URL}/login`);
+  await page.goto(`${process.env.EVENTHUB_URL}/login`);
 
   await page.getByPlaceholder('you@email.com')
     .fill(email);

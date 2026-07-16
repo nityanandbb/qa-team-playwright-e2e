@@ -1,35 +1,26 @@
 import { test, expect, request } from '@playwright/test';
 
-test('Get Logged-in User', async () => {
+test('Get logged-in user info via API', async () => {
 
-    // Create API Context
     const apiContext = await request.newContext();
 
-    // Login API
     const loginResponse = await apiContext.post(
-        'https://api.eventhub.rahulshettyacademy.com/api/auth/login',
+        `${process.env.EVENTHUB_API_URL}/auth/login`,
         {
             data: {
-                email: 'tusharmali195@gmail.com',
-                password: 'Tushar@12345'
+                email: process.env.EVENT_EMAIL,
+                password: process.env.EVENT_PASSWORD
             }
         }
     );
 
-    // Validate Login
     expect(loginResponse.status()).toBe(200);
 
-    // Convert Response
     const loginBody = await loginResponse.json();
-
-    // Get Token
     const token = loginBody.token;
 
-    console.log("Token:", token);
-
-    // Call GET /me API
     const meResponse = await apiContext.get(
-        'https://api.eventhub.rahulshettyacademy.com/api/auth/me',
+        `${process.env.EVENTHUB_API_URL}/auth/me`,
         {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -37,12 +28,10 @@ test('Get Logged-in User', async () => {
         }
     );
 
-    // Validate Response
     expect(meResponse.status()).toBe(200);
 
     const meBody = await meResponse.json();
-
-    console.log(meBody);
-
+    const returnedEmail = meBody.email || meBody.user?.email || meBody.data?.email;
+    expect(returnedEmail).toBe(process.env.EVENT_EMAIL);
 
 });

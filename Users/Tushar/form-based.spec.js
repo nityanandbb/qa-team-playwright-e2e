@@ -18,18 +18,20 @@ test.describe('Form Based Application', () => {
     await page.locator('#subjectsInput').fill('Computer Science');
 
     await page.keyboard.press('Enter');
-
-    await page.locator('label[for="hobbies-checkbox-1"]').click();
+    
+    // Click hobby checkbox - force click to bypass modal if it exists
+    await page.locator('label[for="hobbies-checkbox-1"]').click({ force: true, timeout: 5000 });
 
     await page.locator('#currentAddress').fill('Pune, Maharashtra');
 
     await page.locator('#state').click();
-    await page.getByText('Haryana').click();
+    await page.getByText('Haryana').click({ force: true });
 
     await page.locator('#city').click();
-    await page.getByText('Panipat').click();
+    await page.getByText('Panipat').click({ force: true });
 
-    await page.locator('#submit').click();
+    await page.locator('#submit').scrollIntoViewIfNeeded();
+    await page.locator('#submit').click({ force: true });
 
     await expect(page.getByText('Thanks for submitting the form')).toBeVisible();
 

@@ -1,41 +1,36 @@
 import { test, expect } from '@playwright/test';
+import { AlertHandlingPage } from '../pages/AlertHandlingPage';
 
-test('Alert Handling', async ({ page }) => {
+test('Alert with user name', async ({ page }) => {
 
-  await page.goto('https://rahulshettyacademy.com/AutomationPractice/');
+  const alertPage = new AlertHandlingPage(page);
+  const userName = 'Tushar';
 
-  const name = 'Tushar';
+  await alertPage.open();
+  await alertPage.fillName(userName);
 
-  await page.getByPlaceholder('Enter Your Name').fill(name);
+  const alertPromise = alertPage.handleAlert();
+  await alertPage.clickAlert();
 
-  await expect(page.getByRole('button', { name: 'Alert' })).toBeVisible();
+  const alertData = await alertPromise;
 
-  await page.getByRole('button', { name: 'Alert' }).click();
-
-  page.on('dialog', async dialog => {
-
-    expect(dialog.type()).toBe('alert');
-
-    expect(dialog.message()).toBe(`Hello ${name}, share this practice page and share your knowledge`);
-
-    await dialog.accept();
-  });
+  expect(alertData.type).toBe('alert');
+  expect(alertData.message).toBe(`Hello ${userName}, share this practice page and share your knowledge`);
 
 });
 
-test('Alert Handling - Empty Name', async ({ page }) => {
+test('Alert with empty name', async ({ page }) => {
 
-  await page.goto('https://rahulshettyacademy.com/AutomationPractice/');
+  const alertPage = new AlertHandlingPage(page);
 
-  page.on('dialog', async dialog => {
+  await alertPage.open();
 
-    expect(dialog.type()).toBe('alert');
+  const alertPromise = alertPage.handleAlert();
+  await alertPage.clickAlert();
 
-    expect(dialog.message()).toBe('Hello , share this practice page and share your knowledge');
+  const alertData = await alertPromise;
 
-    await dialog.accept();
-  });
-
-  await page.getByRole('button', { name: 'Alert' }).click();
+  expect(alertData.type).toBe('alert');
+  expect(alertData.message).toBe('Hello , share this practice page and share your knowledge');
 
 });

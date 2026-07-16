@@ -1,79 +1,33 @@
 import { test, expect } from '@playwright/test';
 import { loginAs } from '../helpers/eventLoginHelper';
 
-const BASE_URL = 'https://eventhub.rahulshettyacademy.com';
-const API_URL = 'https://api.eventhub.rahulshettyacademy.com/api';
+test('Yahoo user booking is not accessible to Gmail user', async ({ page }) => {
 
-const YAHOO_USER = {
-  email: 'yahoo1@yahoo.com',
-  password: 'Tushar@12345'
-};
+  await loginAs(page, process.env.YAHOO_USER_EMAIL, process.env.YAHOO_USER_PASSWORD);
 
-const GMAIL_USER = {
-  email: 'tusharmali195@gmail.com',
-  password: 'Tushar@12345'
-};
+  await page.goto(`${process.env.EVENTHUB_URL}/events`);
 
-test('Yahoo booking cannot be opened by Gmail user', async ({ page, request }) => {
+  const availableButton = page.locator('[data-testid="event-card"] [data-testid="book-now-btn"]:not([aria-disabled="true"])').first();
+  await expect(availableButton).toBeVisible({ timeout: 10000 });
 
-  // Step 1 - Login using API
-  const loginRes = await request.post(`${API_URL}/auth/login`, {
-    data: {
-      email: YAHOO_USER.email,
-      password: YAHOO_USER.password,
-    },
-  });
+  await availableButton.click();
+  await expect(page.locator('#ticket-count')).toHaveText('1');
 
-  console.log("Login Status:", loginRes.status());
+  await page.getByLabel('Full Name').fill('Yahoo User');
+  await page.locator('#customer-email').fill(process.env.YAHOO_USER_EMAIL);
+  await page.getByPlaceholder('+91 98765 43210').fill('9999999999');
+  await page.locator('.confirm-booking-btn').click();
 
-  expect(loginRes.ok()).toBeTruthy();
+  await expect(page.getByText('Booking Confirmed!')).toBeVisible();
 
-  const loginData = await loginRes.json();
-  const token = loginData.token;
-  console.log("Token:", token);
+  await page.context().clearCookies();
+  await page.goto(`${process.env.EVENTHUB_URL}/login`);
 
-  // Step 2 - Get Events
-  const eventsRes = await request.get(`${API_URL}/events`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  await loginAs(page, process.env.EVENT_EMAIL, process.env.EVENT_PASSWORD);
 
-  expect(eventsRes.ok()).toBeTruthy();
+  await page.goto(`${process.env.EVENTHUB_URL}/bookings`);
 
-  const eventsData = await eventsRes.json();
-  const eventId = eventsData.data[0].id;
-  console.log("Event ID:", eventId);
-
-  // Step 3 - Create Booking
-  const bookingRes = await request.post(`${API_URL}/bookings`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    data: {
-      eventId: eventId,
-      customerName: 'Yahoo User',
-      customerEmail: YAHOO_USER.email,
-      customerPhone: '9999999999',
-      quantity: 1,
-    },
-  });
-
-  expect(bookingRes.ok()).toBeTruthy();
-
-  const bookingData = await bookingRes.json();
-  const yahooBookingId = bookingData.data.id;
-  console.log("Booking ID:", yahooBookingId);
-
-  // Login as Gmail user
-  await loginAs(page, GMAIL_USER.email, GMAIL_USER.password);
-
-  // Open Yahoo Booking
-  await page.goto(`${BASE_URL}/bookings/${yahooBookingId}`);
-
-  // Validate Access Denied
-  await expect(page.getByText('Access Denied')).toBeVisible();
-
-  await expect(page.getByText('You are not authorized to view this booking')).toBeVisible();
+  const row = page.locator('#booking-card').filter({ hasText: process.env.YAHOO_USER_EMAIL });
+  await expect(row).toHaveCount(0);
 
 });

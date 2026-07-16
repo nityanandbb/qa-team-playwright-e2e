@@ -1,16 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 
-test('Login using POM', async ({ page }) => {
+test('Login with valid credentials using POM', async ({ page }) => {
 
-    const login = new LoginPage(page);
+    const loginPage = new LoginPage(page);
 
-    const email = `playwrighttest1234@gmail.com`;
-    const password = 'Test@123';
-
-    await login.open();
-
-    await login.login(email, password);
+    await loginPage.open();
+    await loginPage.fillEmail(process.env.EMAIL);
+    await loginPage.fillPassword(process.env.PASSWORD);
+    await loginPage.clickLogin();
 
     await expect(page).toHaveURL(/dashboard/);
 

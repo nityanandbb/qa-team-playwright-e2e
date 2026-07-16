@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 const BASE_URL = 'https://eventhub.rahulshettyacademy.com';
-const EMAIL = 'tusharmali195@gmail.com';
-const PASSWORD = 'Tushar@12345';
+const EMAIL = process.env.EVENT_EMAIL || 'tusharmali195@gmail.com';
+const PASSWORD = process.env.EVENT_PASSWORD || 'Tushar@12345';
 
 async function loginAndGoToBooking(page) {
 
@@ -14,7 +14,7 @@ async function loginAndGoToBooking(page) {
   await page.locator('#login-btn').click();
 
   // Verify successful login
-  await expect(page.getByText('From tech conferences to live concerts')).toBeVisible();
+  await expect(page.getByText('From tech conferences to live concerts')).toBeVisible({ timeout: 10000 });
 
 }
 
@@ -28,8 +28,13 @@ test('Single ticket booking is eligible for refund', async ({ page }) => {
   // Open Events
   await page.goto(`${BASE_URL}/events`);
 
-  // Book First Event
-  await page.locator('[data-testid="event-card"]').nth(1).getByTestId('book-now-btn').click();
+  // Book first available event with Book Now button (for single ticket)
+  const firstAvailable = page.locator('[data-testid="event-card"]').filter({
+    has: page.getByTestId('book-now-btn').filter({ hasText: 'Book Now' })
+  }).first();
+  
+  await firstAvailable.getByTestId('book-now-btn').click();
+  
   // Default ticket count = 1
   await expect(page.locator('#ticket-count')).toHaveText('1');
 
@@ -84,19 +89,24 @@ test('Group booking is NOT eligible for refund', async ({ page }) => {
   // Login
   await loginAndGoToBooking(page);
 
-  // Open Events
-  await page.goto(`${BASE_URL}/events`);
+    // Navigate directly to an event detail page with ticket controls
+  await page.goto(`${BASE_URL}/events/1`);
 
-  // Book First Event
-  const eventCard = page.locator('[data-testid="event-card"]').nth(1);
+  // Wait for booking form and ticket counter
+  const ticketCount = page.locator('#ticket-count');
+  await expect(ticketCount).toBeVisible({ timeout: 10000 });
 
-  await eventCard.getByTestId('book-now-btn').click();
+  const ticketForm = page.locator('form').filter({ has: ticketCount }).first();
+  const plusButton = ticketForm.locator('button:has-text("+")');
 
-  // Increase Tickets to 3
-  await page.locator('button:has-text("+")').click();
-  await page.locator('button:has-text("+")').click();
+  await expect(plusButton).toBeEnabled({ timeout: 15000 });
+  await plusButton.click();
+  await expect(ticketCount).toHaveText('2');
 
-  await expect(page.locator('#ticket-count')).toHaveText('3');
+  await expect(plusButton).toBeEnabled({ timeout: 15000 });
+  await plusButton.click();
+
+  await expect(ticketCount).toHaveText('3');
 
   // Fill Booking Details
   await page.getByLabel('Full Name').fill('Tushar Mali');
@@ -137,7 +147,6 @@ test('Group booking is NOT eligible for refund', async ({ page }) => {
   await expect(refundResult).toBeVisible();
 
   await expect(refundResult).toContainText('Not eligible for refund');
-
   await expect(refundResult).toContainText('Group bookings (3 tickets) are non-refundable.');
 
 });

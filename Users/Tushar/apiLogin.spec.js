@@ -1,32 +1,25 @@
 import { test, expect, request } from '@playwright/test';
 
-test('Login API', async () => {
+test('Login API validates response', async () => {
 
-    // Create API Context
     const apiContext = await request.newContext();
 
-    // Send Login Request
     const loginResponse = await apiContext.post(
-        'https://api.eventhub.rahulshettyacademy.com/api/auth/login',
+        `${process.env.EVENTHUB_API_URL}/auth/login`,
         {
             data: {
-                email: 'tusharmali195@gmail.com',
-                password: 'Tushar@12345'
+                email: process.env.EVENT_EMAIL,
+                password: process.env.EVENT_PASSWORD
             }
         }
     );
 
-    // Validate Status Code
     expect(loginResponse.status()).toBe(200);
 
-    // Convert Response to JSON
     const body = await loginResponse.json();
 
-    console.log(body);
-
-    // Validate Response
     expect(body.success).toBe(true);
     expect(body.token).toBeTruthy();
-    expect(body.user.email).toBe('tusharmali195@gmail.com');
+    expect(body.user.email).toBe(process.env.EVENT_EMAIL);
 
 });

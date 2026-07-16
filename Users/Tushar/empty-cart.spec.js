@@ -12,9 +12,7 @@ test('Empty Cart Scenario', async ({ page }) => {
 
   await page.getByRole('button', {name: 'Login'}).click();
 
-  await page.getByRole('button', {
-    name: 'Login'
-  }).click();
+  await page.getByRole('button', {name: 'Login'}).click();
 
   await expect(page.locator('.card-body').first()).toBeVisible();
 

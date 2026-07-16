@@ -6,15 +6,15 @@ export class VisibilityPage {
 
         this.textbox = page.locator('#displayed-text');
 
-        this.hideButton = page.getByRole('button', {name: 'Hide'});
+        this.hideButton = page.getByRole('button', { name: 'Hide' });
 
-        this.showButton = page.getByRole('button', {name: 'Show'});
+        this.showButton = page.getByRole('button', { name: 'Show' });
 
     }
 
     async open() {
 
-        await this.page.goto('https://rahulshettyacademy.com/AutomationPractice/');
+        await this.page.goto(process.env.PRACTICE_URL);
 
     }
 
