@@ -10,9 +10,7 @@ export async function loginAndGoToEvents(page) {
 
     await page.locator('#login-btn').click();
 
-    await expect(
-        page.getByText('From tech conferences to live concerts')
-    ).toBeVisible();
+    await expect(page.getByText('From tech conferences to live concerts')).toBeVisible();
 
     await page.goto(`${process.env.EVENTHUB_URL}/events`);
 
